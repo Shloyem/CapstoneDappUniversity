@@ -14,4 +14,13 @@ const ether = (n) => {
 // Same as Ether
 const tokens = (n) => ether(n)
 
-module.exports = { tokens, ether, EVM_REVERT, ETHER_ADDRESS }
+const assertEvent = (eventLog, eventName, expectedArgsNameAndValue) => {
+  eventLog.event.should.equal(eventName);
+  const eventArgs = eventLog.args;
+
+  for (const [key, expValue] of Object.entries(expectedArgsNameAndValue)) {
+    eventArgs[key].toString().should.equal(expValue.toString());
+  }
+}
+
+module.exports = { tokens, ether, EVM_REVERT, ETHER_ADDRESS, assertEvent }

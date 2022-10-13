@@ -1,4 +1,4 @@
-const { tokens, ether, EVM_REVERT, ETHER_ADDRESS } = require('./helpers');
+const { tokens, ether, EVM_REVERT, ETHER_ADDRESS, assertEvent } = require('./helpers');
 const Token = artifacts.require("Token");
 const Exchange = artifacts.require("Exchange");
 
@@ -54,13 +54,15 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
     })
 
     it('emits a Deposit event', async () => {
-      const log = result.logs[0];
-      log.event.should.equal('Deposit');
-      const event = log.args;
-      event._token.should.equal(ETHER_ADDRESS, 'token is incorrect');
-      event._user.should.equal(user1, 'user is incorrect');
-      event._amount.toString().should.equal((amount).toString(), 'amount is incorrect');
-      event._balance.toString().should.equal((amount).toString(), 'balance is incorrect');
+      const eventLog = result.logs[0];
+
+      assertEvent(eventLog, 'Deposit',
+        {
+          _token: ETHER_ADDRESS,
+          _user: user1,
+          _amount: amount,
+          _balance: amount
+        });
     })
   })
 
@@ -83,13 +85,15 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
       })
 
       it('emits a Deposit event', async () => {
-        const log = result.logs[0];
-        log.event.should.equal('Deposit');
-        const event = log.args;
-        event._token.should.equal(token.address, 'token is incorrect');
-        event._user.should.equal(user1, 'user is incorrect');
-        event._amount.toString().should.equal((amount).toString(), 'amount is incorrect');
-        event._balance.toString().should.equal((amount).toString(), 'balance is incorrect');
+        const eventLog = result.logs[0];
+
+        assertEvent(eventLog, 'Deposit',
+          {
+            _token: token.address,
+            _user: user1,
+            _amount: amount,
+            _balance: amount
+          });
       })
     })
 

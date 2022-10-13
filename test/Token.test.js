@@ -1,4 +1,4 @@
-const { tokens, EVM_REVERT } = require('./helpers');
+const { tokens, EVM_REVERT, assertEvent } = require('./helpers');
 const Token = artifacts.require("Token");
 
 require('chai').use(require('chai-as-promised')).should()
@@ -55,13 +55,14 @@ contract('Token', ([deployer, receiver, exchange]) => {
       })
 
       it('emits a Transfer event', async () => {
-        const log = result.logs[0];
-        log.event.should.equal('Transfer');
-        const event = log.args;
-        event._from.should.equal(deployer, 'from is incorrect');
-        event._to.should.equal(receiver, 'to is incorrect');
-        event._value.toString().should.equal((amount).toString(), 'amount is incorrect');
+        const eventLog = result.logs[0];
 
+        assertEvent(eventLog, 'Transfer',
+          {
+            _from: deployer,
+            _to: receiver,
+            _value: amount
+          });
       })
     })
 
@@ -96,12 +97,14 @@ contract('Token', ([deployer, receiver, exchange]) => {
       })
 
       it('emits an Approval event', async () => {
-        const log = result.logs[0];
-        log.event.should.equal('Approval');
-        const event = log.args;
-        event._owner.should.equal(deployer, 'owner is incorrect');
-        event._spender.should.equal(exchange, 'spender is incorrect');
-        event._value.toString().should.equal((amount).toString(), 'value is incorrect');
+        const eventLog = result.logs[0];
+
+        assertEvent(eventLog, 'Approval',
+          {
+            _owner: deployer,
+            _spender: exchange,
+            _value: amount
+          });
       })
     })
 
@@ -140,13 +143,14 @@ contract('Token', ([deployer, receiver, exchange]) => {
       })
 
       it('emits a Transfer event', async () => {
-        const log = result.logs[0];
-        log.event.should.equal('Transfer');
-        const event = log.args;
-        event._from.should.equal(deployer, 'from is incorrect');
-        event._to.should.equal(receiver, 'to is incorrect');
-        event._value.toString().should.equal((amount).toString(), 'amount is incorrect');
+        const eventLog = result.logs[0];
 
+        assertEvent(eventLog, 'Transfer',
+          {
+            _from: deployer,
+            _to: receiver,
+            _value: amount
+          });
       })
     })
 
