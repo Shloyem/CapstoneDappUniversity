@@ -1,5 +1,4 @@
 pragma solidity ^0.5.0;
-// import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract Token {
@@ -20,8 +19,6 @@ contract Token {
         address indexed _spender,
         uint256 _value
     );
-
-    // Send tokens
 
     constructor() public {
         totalSupply = 1000000 * (10**decimals);
