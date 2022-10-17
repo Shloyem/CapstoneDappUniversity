@@ -11,6 +11,8 @@ contract Exchange {
 	uint256 public feePercent; // the fee percentage
 	address constant ETHER = address(0); // store Ether in tokens mapping with blank address
 	mapping(address => mapping(address => uint256)) public tokens; // token address to user balance
+	mapping(uint256 => _Order) public orders; // order id to order obj
+	uint256 public orderCount;
 
 	// Events
 	event Deposit(
@@ -26,6 +28,27 @@ contract Exchange {
 		uint256 _amount,
 		uint256 _balance
 	);
+
+	event Order(
+		uint256 _id,
+		address _user,
+		address _tokenGet,
+		uint256 _amountGet,
+		address _tokenGive,
+		uint256 _amountGive,
+		uint256 _timestamp
+	);
+
+	// Structs
+	struct _Order {
+		uint256 _id;
+		address _user;
+		address _tokenGet;
+		uint256 _amountGet;
+		address _tokenGive;
+		uint256 _amountGive;
+		uint256 _timestamp;
+	}
 
 	constructor(address _feeAccount, uint256 _feePercent) public {
 		feeAccount = _feeAccount;
@@ -75,5 +98,34 @@ contract Exchange {
 		returns (uint256 _balance)
 	{
 		return tokens[_token][_user];
+	}
+
+	function makeOrder(
+		address _tokenGet,
+		uint256 _amountGet,
+		address _tokenGive,
+		uint256 _amountGive
+	) public {
+		orderCount = orderCount.add(1);
+
+		orders[orderCount] = _Order(
+			orderCount,
+			msg.sender,
+			_tokenGet,
+			_amountGet,
+			_tokenGive,
+			_amountGive,
+			now
+		);
+
+		emit Order(
+			orderCount,
+			msg.sender,
+			_tokenGet,
+			_amountGet,
+			_tokenGive,
+			_amountGive,
+			now
+		);
 	}
 }

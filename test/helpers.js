@@ -23,4 +23,9 @@ const assertEvent = (eventLog, eventName, expectedArgsNameAndValue) => {
   }
 }
 
-module.exports = { tokens, ether, EVM_REVERT, ETHER_ADDRESS, assertEvent }
+const assertEquals = (val1, val2, comparedName) => {
+  val1.toString().should.equal(val2.toString(),
+    comparedName ? `${comparedName} is incorrect` : '');
+}
+
+module.exports = { tokens, ether, EVM_REVERT, ETHER_ADDRESS, assertEvent, assertEquals }

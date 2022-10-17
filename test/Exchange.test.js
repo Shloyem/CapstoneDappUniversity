@@ -1,4 +1,4 @@
-const { tokens, ether, EVM_REVERT, ETHER_ADDRESS, assertEvent } = require('./helpers');
+const { tokens, ether, EVM_REVERT, ETHER_ADDRESS, assertEvent, assertEquals } = require('./helpers');
 const Token = artifacts.require("Token");
 const Exchange = artifacts.require("Exchange");
 
@@ -209,6 +209,47 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
     it('returns user balance', async () => {
       const balance = await exchange.balanceOf(ETHER_ADDRESS, user1);
       balance.toString().should.equal(amount.toString());
+    })
+  })
+
+  describe('making orders', () => {
+    let amount;
+    let result;
+
+    beforeEach(async () => {
+      amount = ether(1);
+      result = await exchange.makeOrder(token.address, 1, ETHER_ADDRESS, 1, { from: user1 })
+    })
+
+    it('tracks the newly created order', async () => {
+      const orderCount = await exchange.orderCount();
+      assertEquals(orderCount, 1, 'orderCount');
+
+      const order = await exchange.orders(1);
+      assertEquals(order._id, 1, 'ID');
+      assertEquals(order._user, user1, 'User');
+      assertEquals(order._tokenGet, token.address, 'tokenGet');
+      assertEquals(order._amountGet, 1, 'amountGet');
+      assertEquals(order._tokenGive, ETHER_ADDRESS, 'tokenGive');
+      assertEquals(order._amountGive, 1, 'amountGive');
+      order._timestamp.toString().length.should.be.at.least(1, 'timestamp is not present');
+    })
+
+    it('emits an Order event', async () => {
+      const eventLog = result.logs[0];
+
+      assertEvent(eventLog, 'Order',
+        {
+          _id: 1,
+          _user: user1,
+          _tokenGet: token.address,
+          _amountGet: 1,
+          _tokenGive: ETHER_ADDRESS,
+          _amountGive: 1
+        });
+
+      const eventTimeStamp = eventLog.args._timestamp;
+      eventTimeStamp.toString().length.should.be.at.least(1, 'timestamp is not present');
     })
   })
 })
