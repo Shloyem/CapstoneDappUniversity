@@ -252,4 +252,59 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
       eventTimeStamp.toString().length.should.be.at.least(1, 'timestamp is not present');
     })
   })
+
+  describe('other actions', () => {
+    let amount;
+    let orderId;
+
+    beforeEach(async () => {
+      amount = ether(1);
+      orderId = 1;
+      await exchange.depositEther({ from: user1, value: amount });
+      await exchange.makeOrder(token.address, 1, ETHER_ADDRESS, 1, { from: user1 });
+    })
+
+    describe('canceling orders', () => {
+      let result;
+
+      describe('success', () => {
+        beforeEach(async () => {
+          result = await exchange.cancelOrder(orderId, { from: user1 });
+        })
+
+        it('cancels an order', async () => {
+          const orderCancelled = await exchange.orderCancelled(1);
+          assertEquals(orderCancelled, true, 'orderCancelled');
+        })
+
+        it('emits a Cancel event', async () => {
+          const eventLog = result.logs[0];
+
+          assertEvent(eventLog, 'Cancel',
+            {
+              _id: orderId,
+              _user: user1,
+              _tokenGet: token.address,
+              _amountGet: 1,
+              _tokenGive: ETHER_ADDRESS,
+              _amountGive: 1
+            });
+
+          const eventTimeStamp = eventLog.args._timestamp;
+          eventTimeStamp.toString().length.should.be.at.least(1, 'timestamp is not present');
+        })
+      })
+
+      describe('failure', () => {
+        it('rejects invalid order ids', async () => {
+          const invalidOrderId = 2;
+          await exchange.cancelOrder(invalidOrderId, { from: user1 }).should.be.rejectedWith(EVM_REVERT);
+        })
+        it('rejects wrong user', async () => {
+          const wrongUser = deployer;
+          await exchange.cancelOrder(orderId, { from: wrongUser }).should.be.rejectedWith(EVM_REVERT);
+        })
+      })
+    })
+  })
 })

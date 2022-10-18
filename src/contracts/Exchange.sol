@@ -12,6 +12,7 @@ contract Exchange {
 	address constant ETHER = address(0); // store Ether in tokens mapping with blank address
 	mapping(address => mapping(address => uint256)) public tokens; // token address to user balance
 	mapping(uint256 => _Order) public orders; // order id to order obj
+	mapping(uint256 => bool) public orderCancelled;
 	uint256 public orderCount;
 
 	// Events
@@ -30,6 +31,16 @@ contract Exchange {
 	);
 
 	event Order(
+		uint256 _id,
+		address _user,
+		address _tokenGet,
+		uint256 _amountGet,
+		address _tokenGive,
+		uint256 _amountGive,
+		uint256 _timestamp
+	);
+
+	event Cancel(
 		uint256 _id,
 		address _user,
 		address _tokenGet,
@@ -125,6 +136,24 @@ contract Exchange {
 			_amountGet,
 			_tokenGive,
 			_amountGive,
+			now
+		);
+	}
+
+	function cancelOrder(uint256 _id) public {
+		_Order storage order = orders[_id];
+		require(address(order._user) == msg.sender);
+		require(order._id == _id);
+
+		orderCancelled[_id] = true;
+
+		emit Cancel(
+			order._id,
+			msg.sender,
+			order._tokenGet,
+			order._amountGet,
+			order._tokenGive,
+			order._amountGive,
 			now
 		);
 	}
