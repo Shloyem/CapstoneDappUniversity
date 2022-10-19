@@ -14,11 +14,7 @@ contract Token {
 
 	// Events
 	event Transfer(address indexed _from, address indexed _to, uint256 _value);
-	event Approval(
-		address indexed _owner,
-		address indexed _spender,
-		uint256 _value
-	);
+	event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
 	constructor() public {
 		totalSupply = 1000000 * (10**decimals);
@@ -44,10 +40,7 @@ contract Token {
 		emit Transfer(_from, _to, _value);
 	}
 
-	function approve(address _spender, uint256 _value)
-		public
-		returns (bool success)
-	{
+	function approve(address _spender, uint256 _value) public returns (bool success) {
 		require(_spender != address(0));
 		allowance[msg.sender][_spender] = _value;
 		emit Approval(msg.sender, _spender, _value);

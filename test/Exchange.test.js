@@ -4,7 +4,7 @@ const Exchange = artifacts.require("Exchange");
 
 require('chai').use(require('chai-as-promised')).should()
 
-contract('Exchange', ([deployer, feeAccount, user1]) => {
+contract('Exchange', ([deployer, feeAccount, user1, user2]) => {
   let token, exchange;
   const feePercent = 10;
 
@@ -303,6 +303,70 @@ contract('Exchange', ([deployer, feeAccount, user1]) => {
         it('rejects wrong user', async () => {
           const wrongUser = deployer;
           await exchange.cancelOrder(orderId, { from: wrongUser }).should.be.rejectedWith(EVM_REVERT);
+        })
+      })
+    })
+  })
+
+  describe('order actions', () => {
+    beforeEach(async () => {
+      // User1 deposits ether only
+      await exchange.depositEther({ from: user1, value: ether(1) });
+      // Give tokens to user2
+      await token.transfer(user2, tokens(100), { from: deployer });
+      // User2 deposits tokens only
+      await token.approve(exchange.address, tokens(2), { from: user2 });
+      await exchange.depositToken(token.address, tokens(2), { from: user2 });
+      // User1 makes an order to buy tokens with Ether
+      await exchange.makeOrder(token.address, tokens(1), ETHER_ADDRESS, ether(1), { from: user1 });
+    })
+
+    describe('filling orders', () => {
+      let result;
+      let orderId = 1;
+
+      describe('success', () => {
+        beforeEach(async () => {
+          // User2 fills order
+          result = await exchange.fillOrder(orderId, { from: user2 });
+        })
+
+        it('executes the trade and charges fees', async () => {
+          // User1 received tokens
+          assertEquals(await exchange.balanceOf(token.address, user1), tokens(1));
+          // User2 received Ether
+          assertEquals(await exchange.balanceOf(ETHER_ADDRESS, user2), ether(1));
+          // User1 Ether deducted
+          assertEquals(await exchange.balanceOf(ETHER_ADDRESS, user1), 0);
+          // user2 tokens deducted with fee applied (2 - (1+10%fee))
+          assertEquals(await exchange.balanceOf(token.address, user2), tokens(0.9));
+
+          const feeAccount = await exchange.feeAccount();
+          // Fee acount received fee
+          assertEquals(await exchange.balanceOf(token.address, feeAccount), tokens(0.1));
+        })
+
+        it('updates order filled', async () => {
+          // User1 received tokens
+          assertEquals(await exchange.orderFilled(1), true);
+        })
+
+        it('emits a Trade event', async () => {
+          const eventLog = result.logs[0];
+
+          assertEvent(eventLog, 'Trade',
+            {
+              _id: orderId,
+              _user: user1,
+              _tokenGet: token.address,
+              _amountGet: tokens(1),
+              _tokenGive: ETHER_ADDRESS,
+              _amountGive: ether(1),
+              _userFill: user2
+            });
+
+          const eventTimeStamp = eventLog.args._timestamp;
+          eventTimeStamp.toString().length.should.be.at.least(1, 'timestamp is not present');
         })
       })
     })
