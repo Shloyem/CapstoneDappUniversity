@@ -369,6 +369,23 @@ contract('Exchange', ([deployer, feeAccount, user1, user2]) => {
           eventTimeStamp.toString().length.should.be.at.least(1, 'timestamp is not present');
         })
       })
+
+      describe('failure', () => {
+        it('rejects invalid order ids', async () => {
+          const invalidOrderId = 2;
+          await exchange.fillOrder(invalidOrderId, { from: user2 }).should.be.rejectedWith(EVM_REVERT);
+        })
+
+        it('rejects already filled ordered', async () => {
+          await exchange.fillOrder(orderId, { from: user2 });
+          await exchange.fillOrder(orderId, { from: user2 }).should.be.rejectedWith(EVM_REVERT);
+        })
+
+        it('rejects cancelled orders', async () => {
+          await exchange.cancelOrder(orderId, { from: user1 });
+          await exchange.fillOrder(orderId, { from: user2 }).should.be.rejectedWith(EVM_REVERT);
+        })
+      })
     })
   })
 })
