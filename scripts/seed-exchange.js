@@ -69,10 +69,6 @@ module.exports = async function (callback) {
 
     // User 1 makes an order
     result = await exchange.makeOrder(token.address, tokens(100), ETHER_ADDRESS, ether(0.1), { from: user1 })
-    // TODO fix empty logs
-    // console.log('result: ', result);
-    // console.log('logs: ', result.logs);
-    // console.log('logs[0]: ', logs[0]);
     orderId = result.logs[0].args._id;
     console.log(`Made order id ${orderId} from ${user1}`);
 
